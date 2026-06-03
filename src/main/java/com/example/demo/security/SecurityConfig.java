@@ -22,10 +22,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(AbstractHttpConfigurer::disable) // Desactivamos CSRF porque usaremos tokens
+            .csrf(AbstractHttpConfigurer::disable) // Desactivamos CSRF porque es una API REST
             .authorizeHttpRequests(auth -> auth
-                // ¡IMPORTANTE! Aquí dejas libre tu ruta de login (ajusta la ruta si es diferente)
-                .requestMatchers("/api/jugadores/login", "/api/jugadores/registro").permitAll()
+                // ¡IMPORTANTE! Liberamos todas las rutas que el juego necesita para funcionar sin token
+                .requestMatchers(
+                    "/api/jugadores/login", 
+                    "/api/jugadores/registro",
+                    "/api/partidas/**",
+                    "/api/mejoras/**",
+                    "/api/inventarios/**"
+                ).permitAll()
                 // Todo lo demás requiere estar autenticado
                 .anyRequest().authenticated()
             );
@@ -39,14 +45,15 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Configuración CORS vital para que React pueda comunicarse con Spring Boot
+    // Configuración CORS vital para que React (Vercel) pueda comunicarse con Spring Boot (Render)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*")); // Permite cualquier origen (ideal para salir del apuro hoy)
+        configuration.setAllowedOriginPatterns(List.of("*")); // Permite que Vercel se conecte sin bloqueos
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true);
+        // Desactivamos las credenciales para evitar conflictos estrictos de CORS en navegadores al usar "*"
+        configuration.setAllowCredentials(false); 
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
