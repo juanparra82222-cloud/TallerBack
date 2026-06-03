@@ -6,14 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.model.jugador;
 import com.example.demo.model.partida;
+import com.example.demo.repositories.jugadorRepository;
 import com.example.demo.repositories.partidaRepository;
-
 @RestController
 @RequestMapping("/api/partidas")
 @CrossOrigin(origins = "http://localhost:5173") // Recordamos dar permiso a React
@@ -21,6 +23,8 @@ public class partidaController {
 
     @Autowired
     private partidaRepository partidaRepository;
+    @Autowired
+    private jugadorRepository jugadorRepository;
 
     // Guardar el resultado cuando el jugador muere en el juego
     @PostMapping("/guardar")
@@ -35,5 +39,17 @@ public class partidaController {
         // ¿Recuerdas el método que creamos en el Repository? Aquí lo usamos.
         List<partida> top10 = partidaRepository.findTop10ByOrderByPuntajeDesc();
         return ResponseEntity.ok(top10);
+    }
+
+    @PostMapping("/sumar-monedas/{idJugador}")
+    public void sumarMonedas(@PathVariable int idJugador, @RequestBody Integer monedasGanadas) {
+        // Busca al jugador
+        jugador jugador = jugadorRepository.findById(idJugador).get();
+        
+        // Le suma las monedas (cambia 'getMonedas' y 'setMonedas' por 'getOro' o como se llame tu variable)
+        jugador.setMonedas(jugador.getMonedas() + monedasGanadas);
+        
+        // Guarda los cambios
+        jugadorRepository.save(jugador);
     }
 }
