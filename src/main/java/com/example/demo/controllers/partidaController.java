@@ -43,13 +43,15 @@ public class partidaController {
 
     @PostMapping("/sumar-monedas/{idJugador}")
     public void sumarMonedas(@PathVariable int idJugador, @RequestBody Integer monedasGanadas) {
-        // Busca al jugador
         jugador jugador = jugadorRepository.findById(idJugador).get();
         
-        // Le suma las monedas (cambia 'getMonedas' y 'setMonedas' por 'getOro' o como se llame tu variable)
-        jugador.setMonedas(jugador.getMonedas() + monedasGanadas);
+        // Si el jugador es nuevo y no tiene monedas, empezamos en 0
+        int monedasActuales = 0;
+        if (jugador.getMonedas() != null) {
+            monedasActuales = jugador.getMonedas();
+        }
         
-        // Guarda los cambios
+        jugador.setMonedas(monedasActuales + monedasGanadas);
         jugadorRepository.save(jugador);
     }
 }
